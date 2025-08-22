@@ -1,8 +1,10 @@
 [![PkgGoDev](https://pkg.go.dev/badge/github.com/krhubert/backoff)](https://pkg.go.dev/github.com/krhubert/backoff)
 
-# Backoff policy
+# Backoff
 
-This package provides a backoff policy implementation for functions that need to be retried.
+This package provides a retry mechanism for functions.
+
+The API is very minimalistic, yet gives options for customization.
 
 ## Usage
 
@@ -16,30 +18,16 @@ import (
     "github.com/krhubert/backoff"
 )
 
+func fn() (string, error) {
+    return "out", nil
+}
+
 func main() {
-    // Create a new contant interval backoff policy with
-    // a maximum of 5 retries
-    bo := backoff.WithMaxRetries(
-        backoff.NewIntervalBackoff(time.Second),
-        5,
-    )
-
-    // Retry a function that returns an error
-    if err := backoff.Retry(bo, func() error {
-        return nil
-    }); err != nil {
-        fmt.Println("Failed after 5 retries")
+    out, err := backoff.Retry2(context.Background(), fn)
+    if err != nil {
+        fmt.Fprint(os.Stderr, "Failed", err)
+        os.Exit(1)
     }
-
-    // Create a new exponential backoff policy with 
-    // a maximum interval of 1 seconds
-    bo = backoff.WithMaxInterval(
-        backoff.NewExponentialBackoff(),
-        time.Second,
-    )
-
-    backoff.Retry(bo, func() error {
-        return nil
-    })
+    fmt.Println(out)
 }
 ```
